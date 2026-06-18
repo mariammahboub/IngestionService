@@ -1,10 +1,10 @@
-import logging
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from app.domain.exceptions import (
     DuplicateReadingError, ReadingPersistenceError, SensorNotFoundError,
 )
+import logging
 
 logger = logging.getLogger(__name__)
 
@@ -32,21 +32,28 @@ def register_exception_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(DuplicateReadingError)
     async def duplicate_handler(request: Request, exc: DuplicateReadingError):
-        logger.warning("Duplicate blocked | path=%s | detail=%s", request.url.path, str(exc))
-        return JSONResponse(status.HTTP_409_CONFLICT, content={"detail": str(exc)})
+        logger.warning("Duplicate blocked | path=%s | detail=%s",
+                       request.url.path, str(exc))
+        return JSONResponse(
+            status_code=status.HTTP_409_CONFLICT,
+            content={"detail": str(exc)},
+        )
 
     @app.exception_handler(SensorNotFoundError)
     async def not_found_handler(request: Request, exc: SensorNotFoundError):
         logger.info("Sensor not found | path=%s | sensor_id=%s",
                     request.url.path, exc.sensor_id)
-        return JSONResponse(status.HTTP_404_NOT_FOUND, content={"detail": str(exc)})
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content={"detail": str(exc)},
+        )
 
     @app.exception_handler(ReadingPersistenceError)
     async def persistence_handler(request: Request, exc: ReadingPersistenceError):
         logger.error("Persistence failure | path=%s | cause=%s",
                      request.url.path, exc.cause, exc_info=True)
         return JSONResponse(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content={"detail": "A storage error occurred. The operation could not be completed."},
         )
 
@@ -55,6 +62,6 @@ def register_exception_handlers(app: FastAPI) -> None:
         logger.critical("Unhandled exception | path=%s | error=%s",
                         request.url.path, str(exc), exc_info=True)
         return JSONResponse(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content={"detail": "An unexpected error occurred. Please try again later."},
         )

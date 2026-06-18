@@ -1,3 +1,4 @@
+import pytest
 from app.domain.exceptions import (
     DuplicateReadingError, ReadingPersistenceError, SensorNotFoundError,
 )
